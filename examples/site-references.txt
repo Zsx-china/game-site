@@ -1,0 +1,18 @@
+建站参考项目（2026-10-06）
+
+1. AnvilWiki — 单款游戏 Wiki 的页面和代码结构参考
+   https://github.com/PNGTRID/AnvilWiki
+
+2. Next.js SaaS Starter（Stripe）— 收款、开通会员、管理订阅
+   https://github.com/nextjs/saas-starter
+
+3. Next.js Billing（Lemon Squeezy）— 收款和管理订阅；这个示例没有实现激活码功能
+   https://github.com/lmsqueezy/nextjs-billing
+
+4. Paddle Next.js Starter Kit — 收款、开通会员、管理订阅
+   https://github.com/PaddleHQ/paddle-nextjs-starter-kit
+
+5. Keygate — 卖软件时发放和验证激活码，也支持 Stripe 收款；较重，许可证需单独核对
+   https://github.com/tabloy/keygate
+
+说明：2、3、4 是三种不同的收款方案，通常选一个；5 只在需要激活码时考虑。

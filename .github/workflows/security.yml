@@ -1,0 +1,39 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "30 12 * * 1"
+
+permissions:
+  # Required to upload SARIF to CodeQL (osv-scanner).
+  actions: read
+  # Required to upload SARIF to the Security tab.
+  security-events: write
+  # Only need to read contents.
+  contents: read
+
+jobs:
+  # Scan for hardcoded secrets in the diff/history.
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Full dependency-vulnerability scan on push / weekly schedule.
+  osv-scan:
+    if: github.event_name != 'pull_request'
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0"
+
+  # Only report vulnerabilities newly introduced by a pull request.
+  osv-scan-pr:
+    if: github.event_name == 'pull_request'
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0"
