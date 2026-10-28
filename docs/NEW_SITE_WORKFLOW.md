@@ -109,13 +109,13 @@
 
 模板已按参考站（enfosi.online）的内页正文版式落地，新站直接沿用，不要逐站另调：
 
-- 正文列 `max-w-[864px]`（`src/app/[locale]/[...slug]/page.tsx` 的 `#article-reading-body` 与 `src/components/article-body.tsx` 的 `article-prose`）；页头标题区仍保持 `max-w-[760px]`，相关文章区块同为 `max-w-[864px]`（与正文列对齐）。正文文本靠 `article-prose` 的 `pr-8` 收到 832px 宽（与参考站一致），容器仍为 864px，将来加广告轨时偏移量不变。
-- 正文排版 `text-lg leading-8 text-foreground`（18px / 行高 32px、近黑墨色），段落不再加 `max-w-[72ch]` 限制；表格单元格、步骤列表、清单同理改用 `text-foreground`，`peer-checked` 变体保留。
+- 正文列 `max-w-[864px]`（`src/app/[locale]/[...slug]/page.tsx` 的 `#article-reading-body` 与 `src/components/article-body.tsx` 的 `article-prose`）；页头标题区仍保持 `max-w-[760px]`，相关文章区块同为 `max-w-[864px]`（与正文列对齐）。正文文本靠 `article-prose` 的 `pr-0 lg:pr-8` 控制：`lg` 以上收到 832px 宽（与参考站一致），手机端不缩进、用满全宽；容器仍为 864px，将来加广告轨时偏移量不变。
+- 正文排版 `text-lg leading-8 text-foreground`（18px / 行高 32px、近黑墨色），段落不再加 `max-w-[72ch]` 限制；表格单元格、步骤列表、清单同理改用 `text-foreground`，`peer-checked` 变体保留。手机端字号对齐参考站：正文 `text-base leading-7`（16px / 行高 28px），`sm` 以上回到 `text-lg leading-8`；文章 H1 手机 30px（`text-3xl`），`sm:text-5xl` 保持桌面 48px；导语 `text-base leading-7 sm:text-lg sm:leading-[1.7]`。
 - 桌面目录改为正文上方的内联卡片：导语与元信息之后、`MobileTOC` 之后渲染 `<SidebarTOC headings={item.headings} label={messages.shared.tableOfContents} currentPathname={…} />`，外层 `mt-8 hidden lg:block`；不再使用浮动右侧目录（`article-toc.tsx` 已从模板删除）。
 
-不要动：模板内没有任何广告组件，广告轨位偏移（`calc(50%±…)`）属于已挂广告的站点，与本节无关；手机端、首页模块和分类列表页版式不在本节范围；文章长度与生成规格保持原样。
+不要动：模板内没有任何广告组件，广告轨位偏移（`calc(50%±…)`）属于已挂广告的站点，与本节无关；首页模块和分类列表页版式不在本节范围（手机端字号已在上方规定）；文章长度与生成规格保持原样。
 
-验收：构建通过；正文容器 864px、正文文本 832px、字体 18px/行高 32px、文字为 foreground 墨色；1440 与 1280 宽度下 `scrollWidth === clientWidth`；`lg` 及以上能看到内联目录卡片，页面里没有浮动目录。
+验收：构建通过；正文容器 864px、正文文本 832px、字体 18px/行高 32px（手机端 16px/28px、H1 30px）、文字为 foreground 墨色；1440 与 1280 宽度下 `scrollWidth === clientWidth`；`lg` 及以上能看到内联目录卡片，页面里没有浮动目录。
 
 ### 文章增强：快速指南与内嵌视频
 
