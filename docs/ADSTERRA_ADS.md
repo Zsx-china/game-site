@@ -35,8 +35,9 @@
 
 ## 五、位置与尺寸
 
-- 文章详情页 7 位。首页加 2 位（728x90 + 300x250，放在折叠线以下：最近文章区块之后、`HomeModuleSections` 之前）。分类列表页不挂（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
+- 文章详情页 7 位。首页加 2 位（728x90 + 300x250，放在折叠线以下：最近文章区块之后、`HomeModuleSections` 之前）。分类列表页不挂横幅（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
 - 首页两个位放在 `src/app/[locale]/HomePageClient.tsx`，容器跟首页其它区块对齐：`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8`。
+- 分类列表页改挂 Social Bar（见第九节）：这些页原本一个广告位都没有，0 曝光 = 0 收入；Social Bar 一行脚本就能覆盖，且不改页面布局。
 - 728x90 / 468x60 / 160x600 标 `desktopOnly`。
 - `desktopOnly` 的断点 = 该位能放进正文列宽的最小视口。正文列 760px → `lg`（1024px）；正文列更宽（如 1080px）→ `md`（768px）。不要无脑用 `sm`（640px），否则 728x90 会被压扁。
 
@@ -59,21 +60,31 @@
 - 不用 `atOptions`；用 `<div id="container-{key}"></div>` + async invoke 脚本，**container id 必须等于 key**。
 - 主机路径与 banner 不同（`/21` vs `/22`），单独一个 base 常量。
 
-## 九、范围
+## 九、Social Bar（可选）
+
+- Social Bar 不是横幅位：没有 iframe、没有宽高，是一行 `<script data-cfasync="false" src="https://bauval.org/14/<key>"></script>`，形态由 Adsterra 决定（页内推送、图标通知、自定义挂件、插屏）。主机路径是 `/14/`（横幅 `/22/`、native `/21/`）。
+- 用途是给"一个广告位都没有的页面"补曝光。已经挂了横幅的页面不要再叠。
+- 挂载范围：**只挂分类列表页**（`CONTENT_TYPES` 里的页，即 `[locale]/[...slug]/page.tsx` 中 `slug.length === 1` 的分支）。文章页、首页、法律页、404 都不挂。
+- key 与主机写在 `src/config/ads.ts`（`ADSTERRA_SOCIAL_BAR_KEY` / `ADSTERRA_SOCIAL_BAR_SRC`），组件放 `src/components/ads/social-bar.tsx`，用 `next/script` 且 `strategy="afterInteractive"`。
+- 直接挂在分类列表页的分支里（该分支已被 `CONTENT_TYPES.includes(contentType)` 守卫），不要另写 `usePathname()` 客户端组件做路由判断。
+- **Popunder 不加**：它会在后台新开标签页，体验和排名信号最差。
+
+## 十、范围
 
 只新增/修改广告相关文件，不动其它广告位和无关代码。
 
-## 十、验收清单
+## 十一、验收清单
 
 1. `npm run build` 通过。
 2. 本地 `next start` 抽查文章页 HTML：7 个 `/ads/*.html?key=…&invoke=…` 全部存在且 key 正确。
 3. 移动端 390x844：`document.documentElement.scrollWidth === clientWidth`（无横向滚动），宽位 `display:none`。
 4. 桌面 1440x900：7 位全部可见、尺寸正确，native 宽度 = 728（或站点设定值）；首页两个位（728x90 + 300x250）在桌面可见、手机只剩 300x250。
-5. 关闭按钮点击后，按钮和广告都消失。
-6. 线上部署后再验一遍同样 4 项。
-7. **注意**：本机 IP 被 Cloudflare 拦截（`bauval.org` 与 `highrevenueformat.com` 均返回 403），广告创意是否填充**无法在本机判定**——已在 6 个站实测同样 403（含早已上线的站点），属环境限制而非代码问题。创意填充需用正常网络或广告后台查看。
+5. 分类列表页 HTML 里有 `/14/` 的 Social Bar 脚本；文章页、首页、法律页、404 里没有。
+6. 关闭按钮点击后，按钮和广告都消失。
+7. 线上部署后再验一遍同样 4 项。
+8. **注意**：本机 IP 被 Cloudflare 拦截（`bauval.org` 与 `highrevenueformat.com` 均返回 403），广告创意是否填充**无法在本机判定**——已在 6 个站实测同样 403（含早已上线的站点），属环境限制而非代码问题。创意填充需用正常网络或广告后台查看。
 
-## 十一、可直接复制的提示词（定稿版）
+## 十二、可直接复制的提示词（定稿版）
 
 ### A. 接入 banner 横幅广告
 
@@ -107,5 +118,14 @@
 1. 在首页组件（`src/app/[locale]/HomePageClient.tsx`）里，紧跟"最近文章"区块之后、`HomeModuleSections` 之前插入一个 `<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">`，里面放 `<AdBanner slot="banner-728x90" />` 和 `<AdBanner slot="banner-300x250" />`。
 2. 位置在折叠线以下，不要放首屏上方。
 3. 728x90 是 `desktopOnly`，手机自动隐藏；300x250 两端都显示。
-4. 分类列表页、法律页和 404 不挂广告。
+4. 分类列表页、法律页和 404 不挂横幅广告位（分类列表页挂 Social Bar，见 E）。
 5. 只改首页这一个文件和广告相关文件，不动其它无关代码。
+
+### E. Social Bar（分类列表页）
+
+1. 在 `src/config/ads.ts` 加 `ADSTERRA_SOCIAL_BAR_KEY` 和 `ADSTERRA_SOCIAL_BAR_SRC = \`https://bauval.org/14/${ADSTERRA_SOCIAL_BAR_KEY}\``。
+2. 新建 `src/components/ads/social-bar.tsx`：返回 `<Script src={ADSTERRA_SOCIAL_BAR_SRC} data-cfasync="false" strategy="afterInteractive" />`，用 `next/script`，不要 iframe、不要宽高。
+3. 只在分类列表页挂：在 `src/app/[locale]/[...slug]/page.tsx` 的 `slug.length === 1` 分支（列表页渲染函数）末尾渲染 `<SocialBar />`。该分支已被 `CONTENT_TYPES.includes(contentType)` 守卫，所以不可能出现在文章页。
+4. 文章页、首页、法律页、404 一律不挂。
+5. 不加 Popunder。
+6. 只改广告相关文件，不动其它无关代码。
