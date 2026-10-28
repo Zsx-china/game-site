@@ -35,8 +35,8 @@
 
 ## 五、位置与尺寸
 
-- 文章详情页 6 位（6 个横幅）。**首页默认加 3 位**：顶部 sticky 320×50（跟文章页同一个位，可关闭）+ native 卡片 + 手机专属 300×250（桌面隐藏）。参考站（enfosi.online）首页就是这样：桌面只留 sticky 横幅和 native 卡片，桌面横幅位一律不加。新站建站时就要加，不是可选项。分类列表页不挂横幅（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
-- 首页这些位都放在 `src/app/[locale]/HomePageClient.tsx`：sticky 320×50 放在组件最上面（`return <div className="min-w-0 bg-background">` 之后、hero 之前）；native 卡片和手机位放在"最近文章"区块之后、`HomeModuleSections` 之前，容器跟首页其它区块对齐：`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8`。
+- 文章详情页 6 位（6 个横幅）。**首页默认加 5 位**：顶部 sticky 320×50（跟文章页同一个位，可关闭）+ native 卡片 + 桌面 728×90 + 桌面 468×60 + 手机专属 300×250。参考站（enfosi.online）首页就是这样：桌面位在 `src/config/ads.ts` 标 `desktopOnly`（手机自动隐藏），手机位用 `md:hidden` 单独挂，一个桌面位旁边配一个手机位。新站建站时就要加，不是可选项。分类列表页不挂横幅（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
+- 首页这些位都放在 `src/app/[locale]/HomePageClient.tsx`：sticky 320×50 放在组件最上面（`return <div className="min-w-0 bg-background">` 之后、hero 之前）；native 卡片紧跟"最近文章"区块，其后依次是桌面 728×90 和手机 300×250，都在 `HomeModuleSections` 之前；桌面 468×60 放在 `HomeModuleSections` 之后。容器跟首页其它区块对齐：`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8`。
 - 首页的 Native Banner 卡片 `<NativeBanner />`（见第九节）放在"最近文章"区块之后——参考站就是 native 卡片紧跟"最新文章"区块。文章页默认不挂 native。
 - 分类列表页改挂 Social Bar（见第十节）：这些页原本一个广告位都没有，0 曝光 = 0 收入；Social Bar 一行脚本就能覆盖，且不改页面布局。
 - 728x90 / 468x60 / 160x600 标 `desktopOnly`。
@@ -94,7 +94,7 @@
 1. `npm run build` 通过。
 2. 本地 `next start` 抽查文章页 HTML：6 个横幅 `/ads/*.html?key=…&invoke=…` 全部存在且 key 正确；文章页没有 native（native 在首页，是 `<div id="container-<key>">` + `/21/` 脚本，不是 iframe）。
 3. 移动端 390x844：`document.documentElement.scrollWidth === clientWidth`（无横向滚动），宽位 `display:none`。
-4. 桌面 1440x900：文章页横幅位全部可见、尺寸正确；首页桌面只显示 sticky 320×50 和 native 卡片（300x250 手机位在桌面不出现），native 卡片容器存在（高度由广告方决定，最小 120px）；手机首页显示 sticky 320×50 + native 卡片 + 300×250。
+4. 桌面 1440x900：文章页横幅位全部可见、尺寸正确；首页显示 sticky 320×50 + native 卡片 + 桌面 728×90 + 桌面 468×60（手机专属 300×250 在桌面不出现），native 卡片容器存在（高度由广告方决定，最小 120px）；手机首页显示 sticky 320×50 + native 卡片 + 300×250，桌面位不出现。
 5. 分类列表页 HTML 里有 `/14/` 的 Social Bar 脚本；文章页、首页、法律页、404 里没有。
 6. 关闭按钮点击后，按钮和广告都消失。
 7. 竖版位放到空带后：文章页的**广告 iframe 数量仍等于广告位数量**（不能出现同一广告位两份 DOM）；1440 下竖版位右边缘 = 正文列左边缘 − 32px；滚动时它吸在 `top-24` 不动；各宽度 `scrollWidth === clientWidth`。
@@ -134,13 +134,15 @@
 ### D. 首页广告位（默认加，新站必做）
 
 1. 在首页组件（`src/app/[locale]/HomePageClient.tsx`）里，紧跟"最近文章"区块之后、`HomeModuleSections` 之前插入一个 `<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">`，里面放 `<NativeBanner />`（native 卡片）。
-2. 紧跟它再插一个手机专属横幅：`<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 md:hidden"><AdBanner slot="banner-300x250" /></section>`（`md:hidden` = 桌面隐藏，只在手机显示）。
-3. 首页顶部再加 sticky 320×50：import `StickyAdBanner`（`@/components/ads/sticky-ad-banner`），在 `return <div className="min-w-0 bg-background">` 之后、hero 之前写一行 `<StickyAdBanner />`（跟文章页同一个位，可关闭）。
-4. 桌面首页不加 728x90 / 300x250 横幅位——参考站桌面首页只有 sticky 横幅 + native 卡片。
-5. native 卡片和手机位都在折叠线以下，不要放首屏上方。
-6. 首页这几个位**新站默认就加**，不用等用户特别要求；只有用户明确说"首页别挂广告"才去掉。
-7. 分类列表页、法律页和 404 不挂横幅广告位（分类列表页挂 Social Bar，见 E）。
-8. 只改首页这一个文件和广告相关文件，不动其它无关代码。
+2. 紧跟 native 卡片插桌面横幅 728×90：`<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8"><AdBanner slot="banner-728x90" /></section>`（728x90 在 `src/config/ads.ts` 标了 `desktopOnly`，桌面显示、手机自动隐藏）。
+3. 再插一个手机专属横幅：`<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 md:hidden"><AdBanner slot="banner-300x250" /></section>`（`md:hidden` = 桌面隐藏，只在手机显示）。
+4. `HomeModuleSections` 之后再插桌面横幅 468×60：`<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8"><AdBanner slot="banner-468x60" /></section>`（参考站就是把这个位放在两个内容模块之间）。
+5. 首页顶部再加 sticky 320×50：import `StickyAdBanner`（`@/components/ads/sticky-ad-banner`），在 `return <div className="min-w-0 bg-background">` 之后、hero 之前写一行 `<StickyAdBanner />`（跟文章页同一个位，可关闭）。
+6. 桌面位和手机位成对安排（参考站每个桌面位旁边都有一个手机位）。同一个广告单元全站只挂一次——`display:none` 的 iframe 一样会请求广告，重复挂同一单元等于重复请求同一广告位。
+7. 这些位都在折叠线以下，不要放首屏上方。
+8. 首页这几个位**新站默认就加**，不用等用户特别要求；只有用户明确说"首页别挂广告"才去掉。
+9. 分类列表页、法律页和 404 不挂横幅广告位（分类列表页挂 Social Bar，见 E）。
+10. 只改首页这一个文件和广告相关文件，不动其它无关代码。
 
 ### E. Social Bar（分类列表页）
 
