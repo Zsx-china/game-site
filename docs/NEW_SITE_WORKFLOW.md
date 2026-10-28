@@ -85,6 +85,8 @@
 4. 模块名称包含当前游戏名；卡片标签使用简短英文文本，不使用 emoji，不添加无资料支撑的机制、数值或代码。
 5. 广义的“删除内部链接”指删除旧站或无关链接；schema 明确要求的站内导航 `href` 必须保留并指向实际分类路由。
 
+首页版式基线：容器 `max-w-6xl`；H1 用 `text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl`（桌面 72px，与参考站一致）；各区块标题统一 `text-3xl font-bold tracking-tight`，不要给单个区块加 `sm:text-4xl`，否则同一页出现两种标题字号；卡片描述 `text-sm leading-6 text-muted-foreground`，区块简介 `mt-3 leading-7 text-muted-foreground`。首页按导航枢纽设计，不用内页的 864px 正文列宽。
+
 验收：首页模块数量和必填字段与资料一致；链接指向当前站点真实路由；目标模块无旧品牌、占位符和无关链接；locale JSON 可解析，locale 校验、lint、build 通过。
 
 ### 模板交互效果
