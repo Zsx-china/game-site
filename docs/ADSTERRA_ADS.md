@@ -35,7 +35,8 @@
 
 ## 五、位置与尺寸
 
-- 广告挂在文章详情页。首页和分类列表页默认不挂（6 站惯例），用户明确要求再加。
+- 文章详情页 7 位。首页加 2 位（728x90 + 300x250，放在折叠线以下：最近文章区块之后、`HomeModuleSections` 之前）。分类列表页不挂（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
+- 首页两个位放在 `src/app/[locale]/HomePageClient.tsx`，容器跟首页其它区块对齐：`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8`。
 - 728x90 / 468x60 / 160x600 标 `desktopOnly`。
 - `desktopOnly` 的断点 = 该位能放进正文列宽的最小视口。正文列 760px → `lg`（1024px）；正文列更宽（如 1080px）→ `md`（768px）。不要无脑用 `sm`（640px），否则 728x90 会被压扁。
 
@@ -67,7 +68,7 @@
 1. `npm run build` 通过。
 2. 本地 `next start` 抽查文章页 HTML：7 个 `/ads/*.html?key=…&invoke=…` 全部存在且 key 正确。
 3. 移动端 390x844：`document.documentElement.scrollWidth === clientWidth`（无横向滚动），宽位 `display:none`。
-4. 桌面 1440x900：7 位全部可见、尺寸正确，native 宽度 = 728（或站点设定值）。
+4. 桌面 1440x900：7 位全部可见、尺寸正确，native 宽度 = 728（或站点设定值）；首页两个位（728x90 + 300x250）在桌面可见、手机只剩 300x250。
 5. 关闭按钮点击后，按钮和广告都消失。
 6. 线上部署后再验一遍同样 4 项。
 7. **注意**：本机 IP 被 Cloudflare 拦截（`bauval.org` 与 `highrevenueformat.com` 均返回 403），广告创意是否填充**无法在本机判定**——已在 6 个站实测同样 403（含早已上线的站点），属环境限制而非代码问题。创意填充需用正常网络或广告后台查看。
@@ -100,3 +101,11 @@
 3. 把广告外层用 `mx-auto max-w-[<正文列宽>]` 限宽居中，避免桌面端 320 横幅两侧露出横贯整屏的空白框。
 4. `aria-label` 用站点语言。
 5. 只改这一个广告位，adKey 为空时同样 `return null`，不动其它广告和无关代码。
+
+### D. 首页广告位
+
+1. 在首页组件（`src/app/[locale]/HomePageClient.tsx`）里，紧跟"最近文章"区块之后、`HomeModuleSections` 之前插入一个 `<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">`，里面放 `<AdBanner slot="banner-728x90" />` 和 `<AdBanner slot="banner-300x250" />`。
+2. 位置在折叠线以下，不要放首屏上方。
+3. 728x90 是 `desktopOnly`，手机自动隐藏；300x250 两端都显示。
+4. 分类列表页、法律页和 404 不挂广告。
+5. 只改首页这一个文件和广告相关文件，不动其它无关代码。
