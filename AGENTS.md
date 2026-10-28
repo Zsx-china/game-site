@@ -22,7 +22,7 @@
 
 ## 广告接入
 
-游戏站接入 Adsterra 广告统一按 `docs/ADSTERRA_ADS.md` 执行（7 位架构：key 集中在 `src/config/ads.ts`、html 走 query 传 key+invoke、sticky 320×50 可关闭、宽位 `desktopOnly`）；已落地 6 站，改动前先核对该文档。**新站默认就要加首页广告位**：首页 2 位（728x90 + 300x250，放折叠线以下），分类列表页挂 Social Bar。
+游戏站接入 Adsterra 广告统一按 `docs/ADSTERRA_ADS.md` 执行（7 位架构：key 集中在 `src/config/ads.ts`、html 走 query 传 key+invoke、sticky 320×50 可关闭、宽位 `desktopOnly`）；已落地 6 站，改动前先核对该文档。**新站默认就要加首页广告位**：首页 = 顶部 sticky 320×50 + native 卡片 + 手机专属 300×250（桌面不加 728x90/300x250），分类列表页挂 Social Bar。
 
 ## 环境事实补充
 
