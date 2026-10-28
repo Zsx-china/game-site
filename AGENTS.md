@@ -20,6 +20,10 @@
 - 生成与翻译分别执行；每个步骤结束后按实际文件核验数量、分类、metadata、占位符和失败项，不以退出码 0 作为完成依据。
 - 用户明确要求某次任务继续在远端执行时，才改用远端生成。
 
+## 广告接入
+
+游戏站接入 Adsterra 广告统一按 `docs/ADSTERRA_ADS.md` 执行（7 位架构：key 集中在 `src/config/ads.ts`、html 走 query 传 key+invoke、sticky 320×50 可关闭、宽位 `desktopOnly`）；已落地 6 站，改动前先核对该文档。
+
 ## 环境事实补充
 
 - GitHub CLI 在 Windows 侧：`/mnt/c/Program Files/GitHub CLI/gh.exe`（账号 Zsx-china，WSL PATH 无 gh）；git 推送需 `git -c http.proxy= -c https.proxy=` 绕过失效的代理配置。
