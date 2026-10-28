@@ -42,18 +42,20 @@
 - 728x90 / 468x60 / 160x600 标 `desktopOnly`。
 - `desktopOnly` 的断点 = 该位能放进正文列宽的最小视口。正文列 760px → `lg`（1024px）；正文列更宽（如 1080px）→ `md`（768px）。不要无脑用 `sm`（640px），否则 728x90 会被压扁。
 
-- Clover 文章页：正文和相关文章之后，页尾横幅顺序为 **728×90 → 300×250 → 468×60**，文章顶部不再放 728×90。左右侧位与目录本次保持原状，160×300 暂留正文后的原位置。
+- Clover 文章页：正文和相关文章之后，页尾横幅顺序为 **728×90 → 300×250 → 468×60**，文章顶部不再放 728×90。左右两条空带都放竖版位（左 160×600、右 160×300，见第六节），桌面目录改为正文上方的内联卡片（`SidebarTOC`，`mt-8 hidden lg:block`）。
 - Clover 文章粘性条放在限宽 `<main>` 外、导航下方，整条覆盖视口宽度。注意：参考站文章页的粘性条自然位置在标题区之后，Clover 当前在标题区之前；二者滚动后都吸顶，但初始位置尚未完全对齐。
 
 ## 六、单栏页的空带广告位
 
-单栏文章页（`main max-w-[1200px]` + 正文列 `max-w-[760px]`）两侧各留 220px 空带，其中 204px 在文章容器内。右侧空带通常被浮动目录占用（`article-toc.tsx`：`absolute left-[calc(100%+32px)] w-[220px] min-[1280px]:block`），**左侧空带是空的**——竖版位放这里最划算。
+单栏文章页（`main max-w-[1200px]` + 正文列 `max-w-[760px]`）两侧各留 220px 空带，其中 204px 在文章容器内，**左右都不是空的**：左边放 160x600，右边放 160x300。160px 宽正好塞进 204px 空带，再宽的尺寸塞不进去。
 
 - 160x600 放进左侧空带：挂在正文容器内（`#article-reading-body` 是 `relative`），`absolute inset-y-0 right-full mr-8 w-[160px]`，内层 `sticky top-24`，只在 `min-[1280px]` 显示。`right-full` = 右边缘贴正文列左边缘，`mr-8` = 32px 间距（和 enfosi.online 的 31px 一致）。
-- **一个空带只放一个位**。600 + 300 叠起来 = 924px > 900px 视口高，粘住时下面那个会永远露不全。160x300 留在正文下方的横排里。
+- 160x300 放进右侧空带：同一套写法镜像过去——`absolute inset-y-0 left-full ml-8 w-[160px]`，内层 `sticky top-24`，只在 `min-[1280px]` 显示。`left-full` = 左边缘贴正文列右边缘，`ml-8` = 32px 间距。
+- **一个空带只放一个位**。600 + 300 叠起来 = 924px > 900px 视口高，粘住时下面那个会永远露不全；也**不要**把 160x300 同时留在正文流里——同一个单元在 DOM 里只能有一份。
 - **每个位在 DOM 里只能有一份**。不要用"桌面显示一份、隐藏再放一份"的做法——`display:none` 的 iframe 照样发请求，同一个广告位每页请求两次。桌面/移动用同一份 + 响应式定位（`min-[1280px]:absolute` / 不加前缀时保持常规流）。
 - 300x250（300px 宽）塞不进 204px 空带，只能留在正文流里。
-- 参考做法：enfosi.online 的文章页是两条 `fixed top-20 w-40 z-10 hidden xl:block` 的侧轨（左侧 160x600、右侧 160x300，与正文留 31px），正文列 864px。clover 正文列更窄且右侧被目录占，只用左侧一条。
+- 参考做法：enfosi.online 的文章页是两条 `fixed top-20 w-40 z-10 hidden xl:block` 的侧轨（左侧 160x600、右侧 160x300，与正文留 31px），正文列 864px。clover 正文列更窄（760px），但两条空带照样放得下，所以左右都用；区别是 clover 用 `sticky top-24`（只跟着正文走、到正文末尾就停）而不是整页 `fixed`。
+- **右侧空带的前提：把浮动目录挪走**。220px 浮动目录 (`article-toc.tsx`) + 32px 间距 + 160px 广告 + 24px 间距 = 436px 右侧空带，1440 视口下只有约 333px，**放不下**（要 ≥1632px 才够）。所以先按第十四节把目录改成正文上方的内联卡片（`SidebarTOC`），右侧空带才空出来；代价是目录不再跟随滚动、也不再高亮当前章节。不要为了腾位置删掉目录——`MobileTOC` 只管手机，桌面端删了就没有目录了。
 
 ## 七、Sticky 粘性广告
 
@@ -99,7 +101,7 @@
 4. 桌面 1440x900：文章页横幅位全部可见、尺寸正确，页尾顺序为相关文章之后 **728×90 → 300×250 → 468×60**（文章顶部没有 728×90），粘性条整条覆盖视口宽（`x=0`、宽度 = `clientWidth`）；首页显示 sticky 320×50（通栏、带下边框）+ native 卡片 + 桌面 728×90（native 之后）+ 桌面 468×60 + 页尾桌面 728×90（手机专属 300×250 在桌面不出现），native 卡片容器存在（高度由广告方决定，最小 120px）；手机首页显示 sticky 320×50 + native 卡片 + 300×250，桌面位不出现。
 5. 分类列表页 HTML 里有 `/14/` 的 Social Bar 脚本；文章页、首页、法律页、404 里没有。
 6. 关闭按钮点击后，按钮和广告都消失。
-7. 竖版位放到空带后：文章页的**广告 iframe 数量仍等于广告位数量**（不能出现同一广告位两份 DOM）；1440 下竖版位右边缘 = 正文列左边缘 − 32px；滚动时它吸在 `top-24` 不动；各宽度 `scrollWidth === clientWidth`。
+7. 竖版位放进空带后：文章页的**广告 iframe 数量仍等于广告位数量**（不能出现同一广告位两份 DOM）；1440 下左侧位右边缘 = 正文列左边缘 − 32px、右侧位左边缘 = 正文列右边缘 + 32px；滚动时两条都吸在 `top-24` 不动、到正文末尾停住；桌面目录是正文上方的内联卡片，右侧空带里不再有浮动目录；各宽度 `scrollWidth === clientWidth`（1280 是最窄的必验宽度）。
 8. 线上部署后再验一遍同样 4 项。
 9. **注意**：本机 IP 被 Cloudflare 拦截（`bauval.org` 与 `highrevenueformat.com` 均返回 403），广告创意是否填充**无法在本机判定**——已在 6 个站实测同样 403（含早已上线的站点），属环境限制而非代码问题。创意填充需用正常网络或广告后台查看。
 
@@ -157,14 +159,15 @@
 5. 不加 Popunder。
 6. 只改广告相关文件，不动其它无关代码。
 
-### F. 单栏页竖版位放进空带
+### F. 单栏页竖版位放进空带（左右各一条）
 
-1. 单栏文章页（`main max-w-[1200px]` + 正文列 `max-w-[760px]`）正文列左侧有 220px 空带（其中 204px 在文章容器内），右侧空带通常被浮动目录占用。
-2. 把 160x600 从正文下方的横排挪到这条空带：放在正文容器 `#article-reading-body`（`relative`）内，外层 `lg:mt-10 flex justify-center min-[1280px]:absolute min-[1280px]:inset-y-0 min-[1280px]:right-full min-[1280px]:mr-8 min-[1280px]:mt-0 min-[1280px]:w-[160px] min-[1280px]:items-start`，内层 `min-[1280px]:sticky min-[1280px]:top-24`，里面放 `<AdBanner slot="banner-160x600" />`。
-3. `right-full` 让它右边缘贴正文列左边缘，`mr-8` = 32px 间距；`items-start` 必须加，否则 flex 会把 sticky 元素拉成整段正文高，粘不住。
-4. 同一份 DOM 兼顾窄屏：`min-[1280px]:absolute` 之前的断点下它就是普通居中块，落在正文流里。不要再额外复制一份塞进正文下方——`display:none` 的 iframe 照样发请求，一个广告位会被请求两次。
-5. 160x300 留在正文下方的横排里（300+600 叠进同一条空带 = 924px，超过 900px 视口高，下面的位会永远露不全）。
-6. 300x250（300px 宽）塞不进 204px 空带，仍放正文流里。
+1. 单栏文章页（`main max-w-[1200px]` + 正文列 `max-w-[760px]`）两侧各有 220px 空带，其中 204px 在文章容器内。左边放 160x600，右边放 160x300。
+2. 先把桌面浮动目录挪走：右侧空带原本被 `article-toc.tsx` 的 220px 浮动目录占着；目录 + 32px 间距 + 160px 广告 + 24px 间距 ≈ 436px，1440 视口只有约 333px，放不下（要 ≥1632px 才够）。改成正文上方的内联卡片：删掉 `ArticleTOC` 的 import 和用法，在标题区正文列里加 `<div className="mt-8 hidden lg:block"><SidebarTOC headings={item.headings} label={messages.shared.tableOfContents} currentPathname={localizeHref(pathname, locale)} /></div>`。代价是目录不再跟随滚动、也不高亮当前章节——可以接受，但别为了腾位置直接删目录（`MobileTOC` 只管手机，桌面删了就没有目录了）。
+3. 把 160x600 放进左侧空带：放在正文容器 `#article-reading-body`（`relative`）内，外层 `lg:mt-10 flex justify-center min-[1280px]:absolute min-[1280px]:inset-y-0 min-[1280px]:right-full min-[1280px]:mr-8 min-[1280px]:mt-0 min-[1280px]:w-[160px] min-[1280px]:items-start`，内层 `min-[1280px]:sticky min-[1280px]:top-24`，里面放 `<AdBanner slot="banner-160x600" />`。
+4. 160x300 用同一套写法镜像到右侧：外层 `mt-10 flex justify-center min-[1280px]:absolute min-[1280px]:inset-y-0 min-[1280px]:left-full min-[1280px]:ml-8 min-[1280px]:mt-0 min-[1280px]:w-[160px] min-[1280px]:items-start`，内层 `min-[1280px]:sticky min-[1280px]:top-24`，里面放 `<AdBanner slot="banner-160x300" />`。顺手删掉原来正文下方那条 160x300 横排容器。
+5. `right-full` / `left-full` 让外侧边贴住正文列，`mr-8` / `ml-8` = 32px 间距；`items-start` 必须加，否则 flex 会把 sticky 元素拉成整段正文高，粘不住。
+6. 同一份 DOM 兼顾窄屏：`min-[1280px]:absolute` 之前的断点下它就是普通居中块，落在正文流里。不要再额外复制一份——`display:none` 的 iframe 照样发请求，一个广告位会被请求两次。
+7. 一条空带只放一个位（600 + 300 = 924px > 900px 视口高，下面那个会永远露不全）；300x250（300px 宽）塞不进 204px 空带，仍放正文流里。
 
 ### G. Native Banner 卡片（不套 iframe）
 
