@@ -35,9 +35,9 @@
 
 ## 五、位置与尺寸
 
-- 文章详情页 7 位。**首页默认加 2 位**（728x90 + 300x250，放在折叠线以下：最近文章区块之后、`HomeModuleSections` 之前）——新站建站时就要加，不是可选项。分类列表页不挂横幅（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
+- 文章详情页 6 位（6 个横幅）。**首页默认加 3 位**：native 卡片 + 728x90 + 300x250，顺序是 native 卡片在前、横幅在后，都在折叠线以下（最近文章区块之后、`HomeModuleSections` 之前）——新站建站时就要加，不是可选项。分类列表页不挂横幅（索引型薄页，加横幅会挤目录卡片，收益远小于互动信号损失）；法律页和 404 也不挂。
 - 首页两个位放在 `src/app/[locale]/HomePageClient.tsx`，容器跟首页其它区块对齐：`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8`。
-- 首页再挂 1 个 Native Banner 卡片 `<NativeBanner />`（见第九节），放在这两个横幅下面。
+- 首页的 Native Banner 卡片 `<NativeBanner />`（见第九节）放在两个横幅**上面**——参考站就是 native 卡片紧跟"最新文章"区块，横幅在它下面。文章页默认不挂 native。
 - 分类列表页改挂 Social Bar（见第十节）：这些页原本一个广告位都没有，0 曝光 = 0 收入；Social Bar 一行脚本就能覆盖，且不改页面布局。
 - 728x90 / 468x60 / 160x600 标 `desktopOnly`。
 - `desktopOnly` 的断点 = 该位能放进正文列宽的最小视口。正文列 760px → `lg`（1024px）；正文列更宽（如 1080px）→ `md`（768px）。不要无脑用 `sm`（640px），否则 728x90 会被压扁。
@@ -70,11 +70,11 @@
 
 - **不要用 iframe 装 native**。native 广告的卖点是图文并排的推荐卡，塞进固定高度的 iframe 会把它压成一条横幅，形态和点击率都吃亏。
 - 做法：页面里放一个空的 `<div id="container-{key}"></div>`（**container id 必须等于 key**），再用 `next/script` 注入 `https://bauval.org/21/{key}`（`async` + `data-cfasync="false"` + `strategy="afterInteractive"`）。广告脚本自己往这个空 div 里渲染卡片。
-- 卡片外壳由站点自己套：`min-h-[120px] overflow-hidden rounded-2xl`，外层 `w-full max-w-4xl`，上下留 `my-8`。**高度用 `min-h` 不写死**（卡片高度由广告方决定）。
+- 卡片外壳由站点自己套：`min-h-[120px] overflow-hidden rounded-2xl`，外层 `w-full max-w-4xl`，整体外面再包一层 `my-8 flex w-full justify-center`。**高度用 `min-h` 不写死**（卡片高度由广告方决定）。外壳**不要加 `border` 或 `bg`**——广告自己会画背景，多一层框会在广告没填充时变成一个空盒子。
 - 主机路径与 banner 不同（`/21` vs `/22`），单独一个 base 常量 `ADSTERRA_NATIVE_INVOKE_BASE`。
 - key 和 base 写在 `src/config/ads.ts`；组件 `src/components/ads/native-banner.tsx` 里用 `ADS_CONFIG["native-banner"].key`。
 - **不需要 `public/ads/native-banner.html`**（那是旧 iframe 方案的文件，改造时删掉）。
-- 位置：首页（折叠线以下）和文章页正文下方都可以挂；参考站只在首页挂。
+- 位置：**首页，折叠线以下，紧跟"最近文章"区块**（参考站就是这样）。文章页默认不挂 native——要挂就在正文广告栈里加回一行 `<NativeBanner />`（同时加回 import）。
 
 ## 十、Social Bar（可选）
 
@@ -92,9 +92,9 @@
 ## 十二、验收清单
 
 1. `npm run build` 通过。
-2. 本地 `next start` 抽查文章页 HTML：6 个横幅 `/ads/*.html?key=…&invoke=…` 全部存在且 key 正确；native 是 `<div id="container-<key>">` + `/21/` 脚本，不是 iframe。
+2. 本地 `next start` 抽查文章页 HTML：6 个横幅 `/ads/*.html?key=…&invoke=…` 全部存在且 key 正确；文章页没有 native（native 在首页，是 `<div id="container-<key>">` + `/21/` 脚本，不是 iframe）。
 3. 移动端 390x844：`document.documentElement.scrollWidth === clientWidth`（无横向滚动），宽位 `display:none`。
-4. 桌面 1440x900：横幅位全部可见、尺寸正确；native 卡片容器存在（高度由广告方决定，最小 120px）；首页三个位（728x90 + 300x250 + native 卡片）在桌面可见，手机只剩 300x250（native 卡片两端都在）。
+4. 桌面 1440x900：横幅位全部可见、尺寸正确；首页三个位顺序为 native 卡片在前、后跟 728x90 + 300x250，在桌面都可见，native 卡片容器存在（高度由广告方决定，最小 120px）；手机只剩 300x250（native 卡片两端都在）。
 5. 分类列表页 HTML 里有 `/14/` 的 Social Bar 脚本；文章页、首页、法律页、404 里没有。
 6. 关闭按钮点击后，按钮和广告都消失。
 7. 竖版位放到空带后：文章页的**广告 iframe 数量仍等于广告位数量**（不能出现同一广告位两份 DOM）；1440 下竖版位右边缘 = 正文列左边缘 − 32px；滚动时它吸在 `top-24` 不动；各宽度 `scrollWidth === clientWidth`。
@@ -133,12 +133,12 @@
 
 ### D. 首页广告位（默认加，新站必做）
 
-1. 在首页组件（`src/app/[locale]/HomePageClient.tsx`）里，紧跟"最近文章"区块之后、`HomeModuleSections` 之前插入一个 `<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">`，里面放 `<AdBanner slot="banner-728x90" />` 和 `<AdBanner slot="banner-300x250" />`。
+1. 在首页组件（`src/app/[locale]/HomePageClient.tsx`）里，紧跟"最近文章"区块之后、`HomeModuleSections` 之前插入一个 `<section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">`，里面先放 `<NativeBanner />`（native 卡片），再放 `<AdBanner slot="banner-728x90" />` 和 `<AdBanner slot="banner-300x250" />`。
 2. 位置在折叠线以下，不要放首屏上方。
 3. 728x90 是 `desktopOnly`，手机自动隐藏；300x250 两端都显示。
 4. 首页这两个位**新站默认就加**，不用等用户特别要求；只有用户明确说"首页别挂广告"才去掉。
 5. 分类列表页、法律页和 404 不挂横幅广告位（分类列表页挂 Social Bar，见 E）。
-6. 首页这个区块下面再加一个 Native Banner 卡片 `<NativeBanner />`（见 G）。
+6. native 卡片放在两个横幅**上面**（见 G）——顺序跟参考站一致：最近文章 → native 卡片 → 横幅。
 7. 只改首页这一个文件和广告相关文件，不动其它无关代码。
 
 ### E. Social Bar（分类列表页）
@@ -162,9 +162,9 @@
 ### G. Native Banner 卡片（不套 iframe）
 
 1. 在 `src/config/ads.ts` 里保留 native 的 key，并导出 `ADSTERRA_NATIVE_INVOKE_BASE = "https://bauval.org/21"`（banner 是 `/22`，两个主机不一样）。
-2. 新建 `src/components/ads/native-banner.tsx`：`const key = ADS_CONFIG["native-banner"].key; if (!key) return null;`，渲染一个空 div `<div id={`container-${key}`} />`，外面套卡片壳 `min-h-[120px] overflow-hidden rounded-2xl border bg-card`，再包一层 `mx-auto w-full max-w-4xl`；同一个组件里用 `next/script` 注入 `<Script src={`${ADSTERRA_NATIVE_INVOKE_BASE}/${key}`} async data-cfasync="false" strategy="afterInteractive" />`。
+2. 新建 `src/components/ads/native-banner.tsx`：`const key = ADS_CONFIG["native-banner"].key; if (!key) return null;`，渲染一个空 div `<div id={`container-${key}`} />`，外面套卡片壳 `min-h-[120px] overflow-hidden rounded-2xl`（**不要加 `border`/`bg`**，广告没填充时会变成空盒子），再包一层 `w-full max-w-4xl`，整体外面再包 `my-8 flex w-full justify-center`；同一个组件里用 `next/script` 注入 `<Script src={`${ADSTERRA_NATIVE_INVOKE_BASE}/${key}`} async data-cfasync="false" strategy="afterInteractive" />`。
 3. **container id 必须等于 key**，否则脚本找不到坑位、什么都不会渲染。
 4. 高度写 `min-h`，不要写死 90px——卡片高度由广告方决定；也不要用 iframe 罩着，否则 native 被压成横幅条。
 5. 旧的 `public/ads/native-banner.html`（iframe 方案）删掉，不用再建。
-6. 挂载点：首页折叠线以下（跟首页横幅同区块下方）和文章页正文下方都可以挂；参考站只在首页挂。
+6. 挂载点：**首页，折叠线以下，紧跟"最近文章"区块**（跟参考站一致）。文章页默认不挂；要挂就在正文广告栈加回一行 `<NativeBanner />` 并补上 import。
 7. 只改广告相关文件，不动其它无关代码。
